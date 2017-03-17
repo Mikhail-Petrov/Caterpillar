@@ -33,7 +33,8 @@ class Catty {
     //    Номер порта для основного робота
     private final int mainPort = 5555;
     //    Хост, к которому подключаться
-    private final String host = "192.168.1.116";
+//    private final String host = "192.168.1.116";
+    private final String host = "192.168.1.134";
     //    Характеристики робота: углы, на которые поднимается/"подтягивается" передний блок, скорости движения/опускания.
     private final int risingAngle = -120;
     private final int shrinkingAngle = 150;
@@ -97,8 +98,8 @@ class Catty {
     private final String robotName = "robot";
     private int maxTachoDiff = 15;
 
-    private final String obstBig = "commands for 93-35";
-    private final String obstSmall = "commands for 12-254";
+    private final String obstBig = "commands for 346-90";
+    private final String obstSmall = "commands for 143-335";
 
     /**
      * Список ультразвуковых датчиков, установленных на роботе.
@@ -408,10 +409,11 @@ class Catty {
         int startPosition = getAvTacho(true), curPosition = getAvTacho(true) - startPosition;
         boolean isDown;
         move(true, true, true, true);
+        int maxH = 340;
         while (height > 0 || curPosition < deltaI) {
 //            если видим препятствие, то поднимать, если нет, то опускать
 //            при потере из вида фиксировать высоту
-            isDown = dist > maxDistance || height >= 260;
+            isDown = dist > maxDistance || height >= maxH;
 //            LCD.drawString(String.format("h: %d", height), 1, 3);
 //            LCD.drawString(String.format("d: %f", dist), 1, 4);
 
@@ -421,7 +423,7 @@ class Catty {
             else
                 mainMotor.backward();
             int changePosition = getAvTacho(false);
-            while ((dist > maxDistance || height >= 260) && isDown || dist < maxDistance && height < 260 && !isDown) {
+            while ((dist > maxDistance || height >= maxH) && isDown || dist < maxDistance && height < maxH && !isDown) {
                 dist = getDistance(USSensor.middle);
                 dataForFile += String.format("%4f\n", dist);
                 height += prevTC - mainMotor.getTachoCount();
