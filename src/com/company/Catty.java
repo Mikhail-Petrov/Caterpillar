@@ -97,8 +97,8 @@ class Catty {
     private final String robotName = "robot";
     private int maxTachoDiff = 15;
 
-    private final String obstBig = "b";
-    private final String obstSmall = "s";
+    private final String obstBig = "commands for 93-35";
+    private final String obstSmall = "commands for 12-254";
 
     /**
      * Список ультразвуковых датчиков, установленных на роботе.
@@ -480,7 +480,8 @@ class Catty {
 
         setMovingSpeed(movingSpeed2);
 
-        writeToSS(null, obstacleInfoPredicate, analysis);
+//        writeToSS(null, obstacleInfoPredicate, analysis);
+        writeToSS(analysis, "task", obstacleInfoPredicate);
 //        sendToRetranslater("test" + "\t" + analysis + "\n");
         LCD.drawString(String.format("%s\t%s\t%s\t%s", analysis, "task", obstacleInfoPredicate, insertCommand), 0, 0);
         dataForFile = analysis;
