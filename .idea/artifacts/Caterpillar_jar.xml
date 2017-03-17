@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Caterpillar:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Caterpillar_jar</output-path>
+    <root id="archive" name="Caterpillar.jar">
+      <element id="module-output" name="Caterpillar" />
+    </root>
+  </artifact>
+</component>
