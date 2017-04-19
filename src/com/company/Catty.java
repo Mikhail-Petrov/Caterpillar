@@ -33,8 +33,8 @@ class Catty {
     //    Номер порта для основного робота
     private final int mainPort = 5555;
     //    Хост, к которому подключаться
-//    private final String host = "192.168.1.116";
-    private final String host = "192.168.1.134";
+    private final String host = "192.168.1.116";
+//    private final String host = "192.168.1.134";
     //    Характеристики робота: углы, на которые поднимается/"подтягивается" передний блок, скорости движения/опускания.
     private final int risingAngle = -120;
     private final int shrinkingAngle = 150;
@@ -92,9 +92,12 @@ class Catty {
     private final String finishRecordingSubject = "stopRecord";
     private final String repeatRecordingSubject = "repeatRecord";
     //    Названия объектов робота, заносимые в SS
-    private final String backMotorName = "backBlock";
-    private final String middleMotorName = "middleBlock";
-    private final String forwardMotorName = "frontBlock";
+//    private final String backMotorName = "backBlock";
+//    private final String middleMotorName = "middleBlock";
+//    private final String forwardMotorName = "frontBlock";
+    private final String backMotorName = "block0";
+    private final String middleMotorName = "block1";
+    private final String forwardMotorName = "block2";
     private final String robotName = "robot";
     private int maxTachoDiff = 15;
 
@@ -676,7 +679,7 @@ class Catty {
      */
     private void lower() {
 //        if (isRose)
-            mainMotor.rotate(lowerAngle);
+        mainMotor.rotate(lowerAngle);
         mainMotor.flt(true);
         shrinkingCoef = 0;
         isRose = false;
@@ -1214,10 +1217,14 @@ class Catty {
      */
     private void executeCommand(String command) {
         int dist;
+        final int attrsMinAmount = 3;
+        final int delayAttr = 0;
+        final int blockAttr = 1;
+        final int commAttr = 2;
         String[] comAttrs = command.split("\t");
-        if (comAttrs.length < 2)
+        if (comAttrs.length < attrsMinAmount)
             return;
-        long delay = safeParseInt(comAttrs[0]);
+        long delay = safeParseInt(comAttrs[delayAttr]);
         if (delay > 0)
             try {
                 Thread.sleep(delay);
@@ -1225,18 +1232,28 @@ class Catty {
                 e.printStackTrace();
             }
 
-        if (comAttrs[1].equals(commandStop)) {
+        String execBlock = comAttrs[blockAttr];
+        boolean fBlock = execBlock.equals(forwardMotorName),
+                mBlock = execBlock.equals(middleMotorName),
+                bBlock = execBlock.equals(backMotorName);
+        if (execBlock.isEmpty()) {
+            fBlock = true;
+            mBlock = true;
+            bBlock = true;
+        }
+
+        if (comAttrs[commAttr].equals(commandStop)) {
 //         Остановка
-            dist = stop(true, true, true);
+            dist = stop(fBlock, mBlock, bBlock);
             sendToRetranslater(String.format("%s\t%d\n", distanceCom, dist));
-        } else if (comAttrs[1].equals(commandForward) || comAttrs[1].equals(commandBack)) {
+        } else if (comAttrs[commAttr].equals(commandForward) || comAttrs[commAttr].equals(commandBack)) {
 //            Движение вперёд или назад
             long distance = 0;
-            if (comAttrs.length > 2) {
-                distance = safeParseInt(comAttrs[2]);
+            if (comAttrs.length > attrsMinAmount) {
+                distance = safeParseInt(comAttrs[commAttr + 1]);
             }
             if (distance == 0) {
-                if (comAttrs[1].equals(commandForward)) {
+                if (comAttrs[commAttr].equals(commandForward)) {
                     thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -1246,54 +1263,54 @@ class Catty {
                     });
                     thread.start();
                 } else
-                    move(true, true, true, false);
+                    move(fBlock, mBlock, bBlock, false);
             } else {
-                if (comAttrs[1].equals(commandBack))
+                if (comAttrs[commAttr].equals(commandBack))
                     distance *= -1;
-                dist = move((int) distance, true, true, true, false);
+                dist = move((int) distance, fBlock, mBlock, bBlock, false);
 //                Если был указан угол поворота, то указать его в ответе
                 String msg = String.format("%s\t%d", distanceCom, dist);
-                if (comAttrs.length > 3)
-                    msg += "\t" + comAttrs[3];
+                if (comAttrs.length > attrsMinAmount + 1)
+                    msg += "\t" + comAttrs[attrsMinAmount + 1];
                 sendToRetranslater(msg + "\n");
             }
-        } else if (comAttrs[1].equals(commandLeft)) {
+        } else if (comAttrs[commAttr].equals(commandLeft)) {
 //            Повернуть налево
             turn(-90);
-        } else if (comAttrs[1].equals(commandRight)) {
+        } else if (comAttrs[commAttr].equals(commandRight)) {
 //            Повернуть направо
             turn(90);
-        } else if (comAttrs[1].equals(commandTurn)) {
+        } else if (comAttrs[commAttr].equals(commandTurn)) {
 //            Повернуть на заданный угол
-            if (comAttrs.length > 2) {
-                int angle = (int) safeParseInt(comAttrs[2]);
+            if (comAttrs.length > attrsMinAmount) {
+                int angle = (int) safeParseInt(comAttrs[attrsMinAmount]);
                 turn(angle);
             }
-        } else if (comAttrs[1].equals(commandRise)) {
+        } else if (comAttrs[commAttr].equals(commandRise)) {
 //            Поднять блок
             if (isMainRobot)
                 rise();
             else
                 rise2();
-        } else if (comAttrs[1].equals(commandLower)) {
+        } else if (comAttrs[commAttr].equals(commandLower)) {
 //            Отпустить блок
             lower();
-        } else if (comAttrs[1].equals(commandShrink)) {
+        } else if (comAttrs[commAttr].equals(commandShrink)) {
 //            Подтянуть блок
             shrink();
-        } else if (comAttrs[1].equals(commandExit)) {
+        } else if (comAttrs[commAttr].equals(commandExit)) {
 //            Выход
             exit();
-        } else if (comAttrs[1].equals(commandClimb)) {
+        } else if (comAttrs[commAttr].equals(commandClimb)) {
 //            Преодолеть препятствие
             String obstType = obstBig;
-            if (comAttrs.length > 2)
-                obstType = comAttrs[2];
+            if (comAttrs.length > attrsMinAmount)
+                obstType = comAttrs[attrsMinAmount];
             if (obstType.equals(obstBig))
                 climb();
             else if (obstType.equals(obstSmall))
                 climbSmall();
-        } else if (comAttrs[1].equals(commandExploreObst)) {
+        } else if (comAttrs[commAttr].equals(commandExploreObst)) {
 //            Исследовать препятствие
             exploreObstacle();
             mainMotor.flt();
