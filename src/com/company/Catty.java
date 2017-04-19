@@ -941,13 +941,13 @@ class Catty {
                         forwardMotor.stop();
             } else {
                 if (forward)
-                    if (backMotor.isMoving())
+                    if (forwardMotor.isMoving())
                         forwardMotor.stop(true);
                 if (middle)
                     if (middleMotor.isMoving())
                         middleMotor.stop(true);
                 if (back)
-                    if (forwardMotor.isMoving())
+                    if (backMotor.isMoving())
                         backMotor.stop();
             }
         else {
@@ -991,7 +991,7 @@ class Catty {
                 if (middle)
                     middleMotor.backward();
                 if (back)
-                    backMotor.backward();
+                    backMotor.forward();
             } else {
                 leftMotor.backward();
                 rightMotor.backward();
@@ -1253,7 +1253,7 @@ class Catty {
                 distance = safeParseInt(comAttrs[commAttr + 1]);
             }
             if (distance == 0) {
-                if (comAttrs[commAttr].equals(commandForward)) {
+                if (comAttrs[commAttr].equals(commandForward) && execBlock.isEmpty()) {
                     thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -1263,7 +1263,7 @@ class Catty {
                     });
                     thread.start();
                 } else
-                    move(fBlock, mBlock, bBlock, false);
+                    move(fBlock, mBlock, bBlock, comAttrs[commAttr].equals(commandForward));
             } else {
                 if (comAttrs[commAttr].equals(commandBack))
                     distance *= -1;
